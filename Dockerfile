@@ -7,11 +7,14 @@ WORKDIR /app
 # Copy package.json and package-lock.json to the container
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Set NODE_ENV environment variable
+ENV NODE_ENV production
 
-# Install PM2 globally
-RUN npm install -g pm2
+# Running `npm ci` removes the existing node_modules directory and passing in --only=production ensures that only the production dependencies are installed. This ensures that the node_modules directory is as optimized as possible
+RUN npm ci --only=production && npm cache clean --force
+
+# Install Nest CLI globally
+RUN npm install -g @nestjs/cli
 
 # Copy the rest of the application code to the container
 COPY . .
@@ -22,5 +25,5 @@ RUN npm run build
 # Expose the port your application will run on
 EXPOSE 3000
 
-# Command to start your NestJS application with PM2
-CMD ["pm2-runtime", "dist/main.js"]
+# Command to start your NestJS application
+CMD ["node", "dist/main.js"]
